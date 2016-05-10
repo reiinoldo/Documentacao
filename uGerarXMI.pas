@@ -1,31 +1,9 @@
 unit uGerarXMI;
 
 interface
-uses SysUtils, Contnrs, Classes, xmldom, XMLIntf, msxmldom, XMLDoc;
 
-type
-  TClasse = class
-    private
-      id: Integer;
-      nome: String;
-  end;
-
-  TAtributo = class
-    private
-      id: Integer;
-      nome: String;
-      tipo: String;
-      visibilidade: String;
-      modificabilidade: String;
-      valorInicial: String;
-  end;
-
-  TMetodo = class
-    private
-      id: Integer;
-      nome: String;
-      tipoRetorno: String;
-  end;
+uses SysUtils, Contnrs, Classes, xmldom, XMLIntf, msxmldom, XMLDoc,
+     uMetodo, uAtributo, uClasse, uAtorXMI, uCasoDeUso;
 
 var
   ListaObj : TObjectList;
@@ -33,16 +11,6 @@ var
   procedure gerarXMI;
 
 implementation
-
-function ehAtributo(const pLinha: String): Boolean;
-begin
-  Result := POS('TCaixaTexto', pLinha) > 0;
-end;
-
-function ehMetodo(const pLinha: String): Boolean;
-begin
-  Result := POS('TBotao', pLinha) > 0;
-end;
 
 function getValor(pValor: String): String;
 begin
@@ -56,19 +24,89 @@ begin
 
 end;
 
+function ehAtributo(const pIndice: Integer; const pConteudoArquivo: TStringList): Boolean;
+var
+  vLinha : Integer;
+begin
+
+  Result := False;
+
+  if (POS('TAreaTexto', pConteudoArquivo.Strings[pIndice]) > 0) or
+     (POS('TBotaoSelecao', pConteudoArquivo.Strings[pIndice]) > 0) or
+     (POS('TCaixaCombinacao', pConteudoArquivo.Strings[pIndice]) > 0) or
+     (POS('TCaixaSelecao', pConteudoArquivo.Strings[pIndice]) > 0) or
+     (POS('TCaixaTexto', pConteudoArquivo.Strings[pIndice]) > 0) or
+     (POS('TImagem', pConteudoArquivo.Strings[pIndice]) > 0) then
+    Result := True
+  else if (POS('TRotulo', pConteudoArquivo.Strings[pIndice]) > 0) then
+  begin
+
+    vLinha := pIndice;
+    inc(vLinha);
+    while trim(pConteudoArquivo.Strings[vLinha]) <> 'end' do
+    begin
+
+      if (Pos('Documentacao.Atributo', pConteudoArquivo.Strings[vLinha]) > 0) and
+         (getValor(pConteudoArquivo.Strings[vLinha]) = 'True') then
+        Result := True;
+
+      inc(vLinha);
+
+    end;
+
+  end;
+
+end;
+
+function ehClasse(const pIndice: Integer; const pConteudoArquivo: TStringList): Boolean;
+var
+  vLinha : Integer;
+begin
+
+  Result := False;
+
+  //Se for primeira linha do arquivo é classe
+  if (pIndice = 0) then
+    Result := True
+  else if (POS('TGrade', pConteudoArquivo.Strings[pIndice]) > 0) then
+  begin  // Verifica se a grade é uma classe
+
+    vLinha := pIndice;
+    inc(vLinha);
+    while trim(pConteudoArquivo.Strings[vLinha]) <> 'end' do
+    begin
+
+      if (Pos('Documentacao.Classe', pConteudoArquivo.Strings[vLinha]) > 0) and
+         (getValor(pConteudoArquivo.Strings[vLinha]) = 'True') then
+        Result := True;
+
+      inc(vLinha);
+
+    end;
+
+  end;
+
+end;
+
+function ehMetodo(const pLinha: String): Boolean;
+begin
+  Result := POS('TBotao', pLinha) > 0;
+end;
 
 procedure lerArquivo;
 var
-  vArquivo : TStringList;
-  vIndice : Integer;
-  Classe : TClasse;
+  vArquivo: TStringList;
+  vIndice: Integer;
+  Classe: TClasse;
   Atributo: TAtributo;
   Metodo: TMetodo;
+  Ator: TAtorXMI;
+  CasoDeUso: TCasoDeUso;
 begin
 
   vArquivo := TStringList.Create;
 
-  vArquivo.LoadFromFile('C:\Users\Reinoldo\Documents\Embarcadero\Studio\Projects\utesteCadastroUsuario.fmx');
+  vArquivo.LoadFromFile('D:\Development\GitHub\Testes\Unit1.fmx');
 
   vIndice := 0;
 
@@ -77,15 +115,16 @@ begin
   while vIndice <= Pred(vArquivo.Count) do
   begin
 
-    if vIndice = 0 then
+    if ehClasse(vIndice, vArquivo) then
     begin
 
       Classe := TClasse.Create;
       Classe.id := vIndice;
       Classe.nome := getValor(vArquivo.Strings[vIndice]);
       ListaObj.Add(Classe);
+
     end
-    else if EhAtributo(vArquivo.Strings[vIndice]) then
+    else if EhAtributo(vIndice, vArquivo) then
     begin
 
       Atributo := TAtributo.Create;
@@ -95,17 +134,17 @@ begin
       while trim(vArquivo.Strings[vIndice]) <> 'end' do
       begin
 
-        if Pos('Visibilidade', vArquivo.Strings[vIndice]) > 0 then
+        if Pos('Documentacao.Visibilidade', vArquivo.Strings[vIndice]) > 0 then
           Atributo.visibilidade := getValor(vArquivo.Strings[vIndice])
-        else if Pos('Modificabilidade', vArquivo.Strings[vIndice]) > 0 then
-          Atributo.modificabilidade := getValor(vArquivo.Strings[vIndice])
-        else if Pos('Tipo', vArquivo.Strings[vIndice]) > 0 then
+        else if Pos('Documentacao.Tipo', vArquivo.Strings[vIndice]) > 0 then
           Atributo.tipo := getValor(vArquivo.Strings[vIndice]);
 
-        inc(vIndice)
+        inc(vIndice);
+
       end;
 
       ListaObj.Add(Atributo);
+
     end
     else if EhMetodo(vArquivo.Strings[vIndice]) then
     begin
@@ -114,7 +153,51 @@ begin
       Metodo.id := vIndice;
       Metodo.nome := getValor(vArquivo.Strings[vIndice]);
 
+      inc(vIndice);
+      while trim(vArquivo.Strings[vIndice]) <> 'end' do
+      begin
+
+        if Pos('Documentacao.Visibilidade', vArquivo.Strings[vIndice]) > 0 then
+          Metodo.visibilidade := getValor(vArquivo.Strings[vIndice])
+        else if Pos('Documentacao.Tipo', vArquivo.Strings[vIndice]) > 0 then
+          Metodo.tipoRetorno := getValor(vArquivo.Strings[vIndice])
+        else if Pos('Documentacao.Parametros.ListaDeParametros', vArquivo.Strings[vIndice]) > 0 then
+          Metodo.listaDeParametros := getValor(vArquivo.Strings[vIndice])
+        else if Pos('DocumentacaoAtor', vArquivo.Strings[vIndice]) > 0 then
+        begin
+
+          while trim(vArquivo.Strings[vIndice]) <> 'end>' do
+          begin
+
+            if Pos('Ator', vArquivo.Strings[vIndice]) > 0 then
+            begin
+
+              Ator := TAtorXMI.Create;
+              Ator.id := vIndice;
+              Ator.nome := getValor(vArquivo.Strings[vIndice]);
+
+              CasoDeUso := TCasoDeUso.Create;
+              CasoDeUso.id := Metodo.id;
+              CasoDeUso.nome := Metodo.Nome;
+              CasoDeUso.ator := Ator.id;
+
+              ListaObj.Add(Ator);
+              ListaObj.Add(CasoDeUso);
+
+            end;
+
+            Inc(vIndice);
+
+          end;
+
+        end;
+
+        inc(vIndice);
+
+      end;
+
       ListaObj.Add(Metodo);
+
     end;
 
     Inc(vIndice);
@@ -128,7 +211,7 @@ var
   Obj : TObject;
   Raiz: IXMLNode;
   nodoElemento, nodoAtributo: IXMLNode; // Uso Geral
-  cabecalho, documentacao, content, model, nameespace, classe, Classifier: IXMLNode; //Padrão
+  cabecalho, documentacao, content, model, nameespace, classe, Classifier, DataType, StructuralFeature: IXMLNode; //Padrão
   XMLDocument : TXMLDocument;
   i : Integer;
 begin
@@ -264,9 +347,7 @@ begin
       nodoElemento.AttributeNodes.Add(nodoAtributo);
 
       nodoAtributo := XMLDocument.CreateNode('changeability', ntAttribute);
-      if TAtributo(Obj).modificabilidade = 'apenasAdicionar' then
-        nodoAtributo.Text := 'addOnly';
-
+      nodoAtributo.Text := 'addOnly';
       nodoElemento.AttributeNodes.Add(nodoAtributo);
 
       nodoAtributo := XMLDocument.CreateNode('ownerScope', ntAttribute);
@@ -278,9 +359,7 @@ begin
       nodoElemento.AttributeNodes.Add(nodoAtributo);
 
       nodoAtributo := XMLDocument.CreateNode('visibility', ntAttribute);
-      if TAtributo(Obj).visibilidade = 'publico' then
-        nodoAtributo.Text := 'public';
-
+      nodoAtributo.Text := TAtributo(Obj).visibilidade;
       nodoElemento.AttributeNodes.Add(nodoAtributo);
 
       nodoAtributo := XMLDocument.CreateNode('name', ntAttribute);
@@ -292,10 +371,40 @@ begin
       nodoElemento.AttributeNodes.Add(nodoAtributo);
 
 
+
+      DataType := XMLDocument.CreateNode('UML:DataType', ntElement);
+
+      nodoAtributo := XMLDocument.CreateNode('isAbstract', ntAttribute);
+      nodoAtributo.Text := 'false';
+      DataType.AttributeNodes.Add(nodoAtributo);
+
+      nodoAtributo := XMLDocument.CreateNode('isLeaf', ntAttribute);
+      nodoAtributo.Text := 'false';
+      DataType.AttributeNodes.Add(nodoAtributo);
+
+      nodoAtributo := XMLDocument.CreateNode('isRoot', ntAttribute);
+      nodoAtributo.Text := 'false';
+      DataType.AttributeNodes.Add(nodoAtributo);
+
+      nodoAtributo := XMLDocument.CreateNode('isSpecification', ntAttribute);
+      nodoAtributo.Text := 'false';
+      DataType.AttributeNodes.Add(nodoAtributo);
+
+      nodoAtributo := XMLDocument.CreateNode('name', ntAttribute);
+      nodoAtributo.Text := TAtributo(Obj).tipo;
+      DataType.AttributeNodes.Add(nodoAtributo);
+
+      nodoAtributo := XMLDocument.CreateNode('xmi.id', ntAttribute);
+      nodoAtributo.Text := IntToStr(TAtributo(Obj).id);
+      DataType.AttributeNodes.Add(nodoAtributo);
+
+      StructuralFeature := XMLDocument.CreateNode('UML:StructuralFeature.type', ntElement);
+      nodoElemento.ChildNodes.Add(StructuralFeature);
+      StructuralFeature.ChildNodes.Add(DataType);
+
       Classifier := XMLDocument.CreateNode('UML:Classifier.feature', ntElement);
       classe.ChildNodes.Add(Classifier);
       Classifier.ChildNodes.Add(nodoElemento);
-
 
     end
     else if Obj.ClassNameIs('TMetodo') then
@@ -305,13 +414,9 @@ begin
 
   end;
 
-  XMLDocument.SaveToFile('D:\xmlexemplo.xmi');
+  XMLDocument.SaveToFile('D:\xmlexemplo2.xmi');
   XMLDocument.Active := False;
 
-
-
 end;
-
-
 
 end.
