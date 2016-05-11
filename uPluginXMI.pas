@@ -18,9 +18,10 @@ type
 
 implementation
 
-uses Fmx.dialogs;
+uses Vcl.dialogs;
 
 { TPluginXMI }
+
 
 procedure TPluginXMI.AdicionaMenu;
 var
@@ -30,7 +31,7 @@ begin
   menuItem.Caption := 'Documentação';
   menuItem.OnClick := Teste;
 //  if Assigned(menuItem.Find('Help')) then
-    MenuIDE.Items.Find('Tools').Add(menuItem);
+    MenuIDE.Items.Find('Help').Add(menuItem);
 
 
 end;
@@ -44,6 +45,8 @@ initialization
   MenuIDE := (ToolsApi.BorlandIDEServices as INTAServices).MainMenu;
   obj :=  TPluginXMI.Create;
   obj.AdicionaMenu
+
 finalization
+  Obj.Free;
 
 end.

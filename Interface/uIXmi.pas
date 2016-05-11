@@ -2,13 +2,11 @@ unit uIXmi;
 
 interface
 
-uses XMLIntf;
+uses XMLIntf, XMLDoc;
 
 type
   iXMI = interface
-//    constructor create;
-//    destructor destroy;
-    function gerarTag: IXMLNode;
+    function gerarTag(pXML: TXMLDocument): IXMLNode;
   end;
 
 implementation
