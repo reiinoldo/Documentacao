@@ -7,7 +7,7 @@ uses ToolsApi, VCL.Menus, VCL.Forms;
 type
   TPluginXMI = Class
     private
-      procedure Teste(Sender: TObject);
+      procedure Execute(Sender: TObject);
       procedure AdicionaMenu;
 
   End;
@@ -18,7 +18,7 @@ type
 
 implementation
 
-uses Vcl.dialogs;
+uses uPluginTela;
 
 { TPluginXMI }
 
@@ -29,24 +29,23 @@ var
 begin
   menuItem := TMenuItem.Create(Application);
   menuItem.Caption := 'Documentação';
-  menuItem.OnClick := Teste;
-//  if Assigned(menuItem.Find('Help')) then
-    MenuIDE.Items.Find('Help').Add(menuItem);
-
-
+  menuItem.OnClick := Execute;
+  MenuIDE.Items.Find('Help').Add(menuItem);
 end;
 
-procedure TPluginXMI.Teste(Sender: TObject);
+procedure TPluginXMI.Execute(Sender: TObject);
 begin
- SHowMEssage('Funfa');
+  PluginTela.Show;
 end;
 
 initialization
   MenuIDE := (ToolsApi.BorlandIDEServices as INTAServices).MainMenu;
   obj :=  TPluginXMI.Create;
-  obj.AdicionaMenu
+  obj.AdicionaMenu;
+  PluginTela := TPluginTela.Create(nil);
 
 finalization
+  PluginTela.Free;
   Obj.Free;
 
 end.

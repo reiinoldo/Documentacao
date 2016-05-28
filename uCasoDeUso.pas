@@ -9,11 +9,9 @@ type
   private
     fid: Integer;
     fNome: String;
-    fAtor: Integer;
   public
     property Id: Integer read fId write fId;
     property Nome: String read fNome write fNome;
-    property Ator: Integer read fAtor write fAtor;
     function gerarTag(pXML: TXMLDocument): IXMLNode;
   end;
 

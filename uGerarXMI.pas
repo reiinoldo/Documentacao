@@ -3,15 +3,18 @@ unit uGerarXMI;
 interface
 
 uses SysUtils, Contnrs, Classes, xmldom, XMLIntf, msxmldom, XMLDoc, Generics.Collections,
-     uMetodo, uAtributo, uClasse, uAtorXMI, uCasoDeUso, uTiposDeDados;
+     uMetodo, uAtributo, uClasse, uAtorXMI, uCasoDeUso, uRelacionamento, uTiposDeDados, uPropriedades;
 
 var
   ListaObj : TObjectList;
   ListaObjDados : TDictionary<String,TTiposDeDados>;
   ListaObjAtor : TDictionary<String,TAtorXMI>;
   ListaObjCaso : TDictionary<String,TCasoDeUso>;
+  ListaObjRelacionamento : TDictionary<String,TRelacionamento>;
+  vIdentificador: Integer;
 
-  procedure gerarXMI;
+  function gerarXMI: Boolean;
+  function getIdentificador: Integer;
 
 implementation
 
@@ -102,11 +105,13 @@ procedure lerArquivo;
 var
   vArquivo: TStringList;
   vIndice: Integer;
-  Classe: TClasse;
+  ClassePrincipal: TClasse;
+  ClasseSecundaria: TClasse;
   Atributo: TAtributo;
   Metodo: TMetodo;
   Ator: TAtorXMI;
   CasoDeUso: TCasoDeUso;
+  Relacionamento: TRelacionamento;
   TiposDeDados : TTiposDeDados;
   vIndiceEnd : Integer;
 begin
@@ -116,11 +121,15 @@ begin
   vArquivo.LoadFromFile('D:\Development\GitHub\Testes\Unit1.fmx');
 
   vIndice := 0;
+  vIdentificador := 1;
 
   ListaObj := TObjectList.Create;
   ListaObjDados := TDictionary<String,TTiposDeDados>.Create;
   ListaObjAtor := TDictionary<String,TAtorXMI>.Create;
   ListaObjCaso := TDictionary<String,TCasoDeUso>.Create;
+  ListaObjRelacionamento := TDictionary<String,TRelacionamento>.Create;
+
+  ClassePrincipal := nil;
 
   while vIndice <= Pred(vArquivo.Count) do
   begin
@@ -128,13 +137,14 @@ begin
     if ehClasse(vIndice, vArquivo) then
     begin
 
-      Classe := TClasse.Create;
-      Classe.id := vIndice;
-      Classe.nome := getValor(vArquivo.Strings[vIndice]);
-      ListaObj.Add(Classe);
-
       if POS('TGrade',vArquivo.Strings[vIndice]) > 0 then
       begin
+
+        ClasseSecundaria := TClasse.Create;
+        ClasseSecundaria.id := getIdentificador;
+        ClasseSecundaria.nome := getValor(vArquivo.Strings[vIndice]);
+        ListaObj.Add(ClasseSecundaria);
+
         // Adiciona os atributos da grade
         inc(vIndice);
         vIndiceEnd := 1;
@@ -145,13 +155,13 @@ begin
           begin
             inc(vIndiceEnd);
             Atributo := TAtributo.Create;
-            Atributo.id := vIndice;
+            Atributo.id := getIdentificador;
             Atributo.nome := getValor(vArquivo.Strings[vIndice]);
             TiposDeDados := TTiposDeDados.Create;
             TiposDeDados.Nome := Atributo.tipo;
             ListaObjDados.AddOrSetValue(Atributo.tipo, TiposDeDados);
 
-            ListaObj.Add(Atributo);
+            ClasseSecundaria.ListaAtributos.Add(Atributo);
           end
           else if trim(vArquivo.Strings[vIndice]) = 'end' then
             dec(vIndiceEnd);
@@ -160,6 +170,15 @@ begin
 
         end;
 
+      end
+      else
+      begin
+
+        ClassePrincipal := TClasse.Create;
+        ClassePrincipal.id := getIdentificador;
+        ClassePrincipal.nome := getValor(vArquivo.Strings[vIndice]);
+        ListaObj.Add(ClassePrincipal);
+
       end;
 
     end
@@ -167,7 +186,7 @@ begin
     begin
 
       Atributo := TAtributo.Create;
-      Atributo.id := vIndice;
+      Atributo.id := getIdentificador;
       Atributo.nome := getValor(vArquivo.Strings[vIndice]);
       inc(vIndice);
       while trim(vArquivo.Strings[vIndice]) <> 'end' do
@@ -186,14 +205,14 @@ begin
       TiposDeDados.Nome := Atributo.tipo;
       ListaObjDados.AddOrSetValue(Atributo.tipo, TiposDeDados);
 
-      ListaObj.Add(Atributo);
+      ClassePrincipal.ListaAtributos.Add(Atributo);
 
     end
     else if EhMetodo(vArquivo.Strings[vIndice]) then
     begin
 
       Metodo := TMetodo.Create;
-      Metodo.id := vIndice;
+      Metodo.id := getIdentificador;
       Metodo.nome := getValor(vArquivo.Strings[vIndice]);
 
       inc(vIndice);
@@ -206,10 +225,10 @@ begin
           Metodo.tipoRetorno := getValor(vArquivo.Strings[vIndice])
         else if Pos('Documentacao.Parametros.ListaDeParametros', vArquivo.Strings[vIndice]) > 0 then
           Metodo.listaDeParametros := getValor(vArquivo.Strings[vIndice])
-        else if Pos('DocumentacaoAtor', vArquivo.Strings[vIndice]) > 0 then
+        else if (Pos('DocumentacaoAtor', vArquivo.Strings[vIndice]) > 0) and (getValor(vArquivo.Strings[vIndice]) <> '<>') then
         begin
 
-          Inc(vIndice);
+          inc(vIndice);
 
           while Pos('>', vArquivo.Strings[vIndice]) = 0 do
           begin
@@ -218,16 +237,26 @@ begin
             begin
 
               Ator := TAtorXMI.Create;
-              Ator.id := vIndice;
+              Ator.id := getIdentificador;
               Ator.nome := getValor(vArquivo.Strings[vIndice]);
 
               CasoDeUso := TCasoDeUso.Create;
-              CasoDeUso.id := Metodo.id+1;
+              CasoDeUso.id := getIdentificador;
               CasoDeUso.nome := Metodo.Nome;
-              CasoDeUso.ator := Ator.id;
 
-              ListaObjAtor.AddOrSetValue(Ator.nome, Ator);
-              ListaObjCaso.AddOrSetValue(CasoDeUso.nome, CasoDeUso);
+              if not ListaObjAtor.ContainsKey(Ator.nome) then
+                ListaObjAtor.Add(Ator.nome, Ator);
+
+              if not ListaObjCaso.ContainsKey(CasoDeUso.Nome) then
+                ListaObjCaso.Add(CasoDeUso.nome, CasoDeUso);
+
+              Relacionamento := TRelacionamento.Create;
+              Relacionamento.id := getIdentificador;
+              Relacionamento.tipo := trCasoDeUso;
+              Relacionamento.referencia1 := ListaObjAtor.Items[Ator.Nome];
+              Relacionamento.referencia2 := ListaObjCaso.Items[CasoDeUso.Nome];
+
+              ListaObjRelacionamento.AddOrSetValue(Relacionamento.nome, Relacionamento);
 
             end;
 
@@ -241,7 +270,7 @@ begin
 
       end;
 
-      ListaObj.Add(Metodo);
+      ClassePrincipal.ListaMetodos.Add(Metodo);
 
     end;
 
@@ -251,15 +280,17 @@ begin
 
 end;
 
-procedure gerarXMI;
+function gerarXMI: Boolean;
 var
   Obj : TObject;
   Raiz: IXMLNode;
   nodoElemento, nodoAtributo: IXMLNode; // Uso Geral
-  cabecalho, documentacao, content, model, nameespace, classe, Classifier: IXMLNode; //Padrão
+  cabecalho, documentacao, content, model, nameespace: IXMLNode; //Padrão
   XMLDocument : TXMLDocument;
   i : Integer;
 begin
+
+  lerArquivo;
 
   XMLDocument := TXMLDocument.Create(nil);
   XMLDocument.FileName := '';
@@ -336,8 +367,6 @@ begin
   nameespace := XMLDocument.CreateNode('UML:Namespace.ownedElement', ntElement);
   model.ChildNodes.Add(nameespace);
 
-  lerArquivo;
-
   // Adiciona primeiro os tipos de dados
   for Obj in ListaObjDados.Values do
   begin
@@ -351,59 +380,9 @@ begin
     if Obj.ClassNameIs('TClasse') then
     begin
 
-      classe := XMLDocument.CreateNode('UML:Class', ntElement);
-
-      nodoAtributo := XMLDocument.CreateNode('isActive', ntAttribute);
-      nodoAtributo.Text := 'false';
-      classe.AttributeNodes.Add(nodoAtributo);
-
-      nodoAtributo := XMLDocument.CreateNode('isAbstract', ntAttribute);
-      nodoAtributo.Text := 'false';
-      classe.AttributeNodes.Add(nodoAtributo);
-
-      nodoAtributo := XMLDocument.CreateNode('isLeaf', ntAttribute);
-      nodoAtributo.Text := 'false';
-      classe.AttributeNodes.Add(nodoAtributo);
-
-      nodoAtributo := XMLDocument.CreateNode('isRoot', ntAttribute);
-      nodoAtributo.Text := 'false';
-      classe.AttributeNodes.Add(nodoAtributo);
-
-      nodoAtributo := XMLDocument.CreateNode('isSpecification', ntAttribute);
-      nodoAtributo.Text := 'false';
-      classe.AttributeNodes.Add(nodoAtributo);
-
-      nodoAtributo := XMLDocument.CreateNode('visibility', ntAttribute);
-      nodoAtributo.Text := TClasse(Obj).Visibilidade;
-      classe.AttributeNodes.Add(nodoAtributo);
-
-      nodoAtributo := XMLDocument.CreateNode('name', ntAttribute);
-      nodoAtributo.Text := TClasse(Obj).nome;
-      classe.AttributeNodes.Add(nodoAtributo);
-
-      nodoAtributo := XMLDocument.CreateNode('xmi.id', ntAttribute);
-      nodoAtributo.Text := IntToStr(TClasse(Obj).id);
-      classe.AttributeNodes.Add(nodoAtributo);
-
-      nameespace.ChildNodes.Add(classe);
-
-      Classifier := XMLDocument.CreateNode('UML:Classifier.feature', ntElement);
-      classe.ChildNodes.Add(Classifier);
-
-    end
-    else if Obj.ClassNameIs('TAtributo') then
-    begin
-
-      Classifier.ChildNodes.Add(TAtributo(Obj).gerarTag(XMLDocument));
-
-    end
-    else if Obj.ClassNameIs('TMetodo') then
-    begin
-
-      Classifier.ChildNodes.Add(TMetodo(Obj).gerarTag(XMLDocument));
+      nameespace.ChildNodes.Add(TClasse(Obj).gerarTag(XMLDocument));
 
     end;
-
 
   end;
 
@@ -417,9 +396,22 @@ begin
     nameespace.ChildNodes.Add(TCasoDeUso(Obj).gerarTag(XMLDocument));
   end;
 
+  for Obj in ListaObjRelacionamento.Values do
+  begin
+    nameespace.ChildNodes.Add(TRelacionamento(Obj).gerarTag(XMLDocument));
+  end;
+
   XMLDocument.SaveToFile('D:\xmlexemplo2.xmi');
   XMLDocument.Active := False;
 
+  result := True;
+
+end;
+
+function getIdentificador: Integer;
+begin
+  inc(vIdentificador);
+  Result := vIdentificador;
 end;
 
 end.

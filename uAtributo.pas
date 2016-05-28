@@ -12,8 +12,6 @@ type
     fNome: String;
     fTipo: String;
     fVisibilidade: String;
-    fModificabilidade: String;
-    fValorInicial: String;
     function getTipo : String;
     function getVisibilidade: String;
   public
