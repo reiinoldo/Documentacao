@@ -38,6 +38,7 @@ type
     procedure gerarClick(Sender: TObject);
     procedure EditButton1Click(Sender: TObject);
     procedure EditButton2Click(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
   private
     FGestureOrigin: TPointF;
     FGestureInProgress: Boolean;
@@ -69,7 +70,7 @@ end;
 
 procedure TPluginTela.gerarClick(Sender: TObject);
 begin
-  if gerarXMI then
+  if gerarXMI(localPrototipagem.Text, localSalvar.Text) then
     ShowMessage('Finalizado com sucesso!')
   else
     ShowMessage('Ops! Algo ocorreu de forma inesperada...');
@@ -78,13 +79,18 @@ end;
 procedure TPluginTela.EditButton1Click(Sender: TObject);
 begin
   if OpenDialog1.Execute then
-    localPrototipagem.Text := OpenDialog1.InitialDir;
+    localPrototipagem.Text := ExtractFilePath(OpenDialog1.fileName);
 end;
 
 procedure TPluginTela.EditButton2Click(Sender: TObject);
 begin
   if SaveDialog1.Execute then
     localSalvar.Text := SaveDialog1.FileName;
+end;
+
+procedure TPluginTela.FormCreate(Sender: TObject);
+begin
+  localSalvar.Text := 'C:\Documentacao.xmi';
 end;
 
 procedure TPluginTela.FormGesture(Sender: TObject;

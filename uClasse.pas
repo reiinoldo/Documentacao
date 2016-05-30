@@ -4,7 +4,7 @@ interface
 
 uses Generics.Collections, XMLIntf, XMLDoc, SysUtils,
      uIXMI,
-     uAtributo, uMetodo;
+     uAtributo, uMetodo, uEstereotipoXMI;
 
 type
 
@@ -15,6 +15,7 @@ type
     fVisibilidade: String;
     fListaAtributos: TObjectList<TAtributo>;
     fListaMetodos: TObjectList<TMetodo>;
+    fListaEstereotipos: TObjectList<TEstereotipoXMI>;
     function getVisibilidade: String;
   public
     property Id: Integer read fId write fId;
@@ -22,6 +23,7 @@ type
     property Visibilidade: String read getVisibilidade write fVisibilidade;
     property ListaAtributos: TObjectList<TAtributo> read fListaAtributos write fListaAtributos;
     property ListaMetodos: TObjectList<TMetodo> read fListaMetodos write fListaMetodos;
+    property ListaEstereotipos: TObjectList<TEstereotipoXMI> read fListaEstereotipos write fListaEstereotipos;
     constructor create;
     function gerarTag(pXML: TXMLDocument): IXMLNode;
   end;
@@ -35,6 +37,7 @@ constructor TClasse.create;
 begin
   Self.ListaAtributos := TObjectList<TAtributo>.Create;
   Self.ListaMetodos := TObjectList<TMetodo>.Create;
+  Self.ListaEstereotipos := TObjectList<TEstereotipoXMI>.Create;
 end;
 
 function TClasse.gerarTag(pXML: TXMLDocument): IXMLNode;
@@ -42,6 +45,7 @@ var
   nodeClasse, nodeAtributo, nodeClassificador: IXMLNode;
   ObjAtributo: TAtributo;
   ObjMetodo: TMetodo;
+  ObjEstereotipo: TEstereotipoXMI;
 begin
 
   nodeClasse := pXML.CreateNode('UML:Class', ntElement);
@@ -78,10 +82,14 @@ begin
   nodeAtributo.Text := IntToStr(Self.Id);
   nodeClasse.AttributeNodes.Add(nodeAtributo);
 
+  for ObjEstereotipo in Self.ListaEstereotipos do
+  begin
+    nodeClasse.ChildNodes.Add(ObjEstereotipo.gerarTag(pXML));
+  end;
+
   nodeClassificador := pXML.CreateNode('UML:Classifier.feature', ntElement);
   nodeClasse.ChildNodes.Add(nodeClassificador);
 
-  // Adiciona primeiro os tipos de dados
   for ObjAtributo in Self.ListaAtributos do
   begin
     nodeClassificador.ChildNodes.Add(ObjAtributo.gerarTag(pXML));

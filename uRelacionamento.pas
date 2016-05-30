@@ -78,7 +78,11 @@ begin
   nodeConexaoPonta1.AttributeNodes.Add(nodeAtributo);
 
   nodeAtributo := pXML.CreateNode('aggregation', ntAttribute);
-  nodeAtributo.Text := 'none';
+  if Tipo = trCasoDeUso then  
+    nodeAtributo.Text := 'none'
+  else
+   nodeAtributo.Text := 'aggregate';
+   
   nodeConexaoPonta1.AttributeNodes.Add(nodeAtributo);
 
   nodeAtributo := pXML.CreateNode('ordering', ntAttribute);

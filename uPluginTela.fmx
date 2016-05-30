@@ -9,6 +9,7 @@
   FormFactor.Width = 1280
   FormFactor.Height = 1024
   FormFactor.Devices = [Desktop]
+  OnCreate = FormCreate
   OnKeyDown = FormKeyDown
   Left = 362
   Top = 64
@@ -11787,6 +11788,7 @@
     Size.Height = 32.000000000000000000
     Size.PlatformDefault = False
     Documentacao.Visibilidade = Privado
+    Documentacao.Atributo = True
     object EditButton1: TEditButton
       CanFocus = False
       Cursor = crArrow
@@ -11800,7 +11802,7 @@
     Size.Width = 177.000000000000000000
     Size.Height = 17.000000000000000000
     Size.PlatformDefault = False
-    Text = 'Caminho das telas'
+    Text = 'Caminho das telas (.fmx)'
     Documentacao.Visibilidade = Privado
     Documentacao.Atributo = False
   end
@@ -11813,6 +11815,7 @@
     Size.Height = 32.000000000000000000
     Size.PlatformDefault = False
     Documentacao.Visibilidade = Privado
+    Documentacao.Atributo = True
     object EditButton2: TEditButton
       CanFocus = False
       Cursor = crArrow
@@ -11823,10 +11826,10 @@
   object Rotulo2: TRotulo
     Position.X = 64.000000000000000000
     Position.Y = 144.000000000000000000
-    Size.Width = 241.000000000000000000
+    Size.Width = 289.000000000000000000
     Size.Height = 17.000000000000000000
     Size.PlatformDefault = False
-    Text = 'Local para salvar arquivo XMI'
+    Text = 'Local para salvar arquivo XMI  (.xmi)'
     Documentacao.Visibilidade = Privado
     Documentacao.Atributo = False
   end
@@ -11849,6 +11852,7 @@
     Size.Width = 569.000000000000000000
     Size.Height = 32.000000000000000000
     Size.PlatformDefault = False
+    Visible = False
   end
   object IncluirSubpastas: TCaixaSelecao
     Position.X = 64.000000000000000000
@@ -11858,7 +11862,9 @@
     Size.PlatformDefault = False
     TabOrder = 7
     Text = 'Incluir subpastas'
+    Visible = False
     Documentacao.Visibilidade = Privado
+    Documentacao.Atributo = True
   end
   object Rotulo3: TRotulo
     StyledSettings = [Family, Style, FontColor]
@@ -11878,7 +11884,6 @@
   end
   object SaveDialog1: TSaveDialog
     Filter = '*.xmi'
-    FilterIndex = 0
     Left = 568
     Top = 96
   end
