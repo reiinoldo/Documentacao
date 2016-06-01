@@ -1,0 +1,51 @@
+package Documentacao;
+
+{$R *.res}
+{$IFDEF IMPLICITBUILDING This IFDEF should not be used by users}
+{$ALIGN 8}
+{$ASSERTIONS ON}
+{$BOOLEVAL OFF}
+{$DEBUGINFO OFF}
+{$EXTENDEDSYNTAX ON}
+{$IMPORTEDDATA ON}
+{$IOCHECKS ON}
+{$LOCALSYMBOLS ON}
+{$LONGSTRINGS ON}
+{$OPENSTRINGS ON}
+{$OPTIMIZATION OFF}
+{$OVERFLOWCHECKS OFF}
+{$RANGECHECKS OFF}
+{$REFERENCEINFO ON}
+{$SAFEDIVIDE OFF}
+{$STACKFRAMES ON}
+{$TYPEDADDRESS OFF}
+{$VARSTRINGCHECKS ON}
+{$WRITEABLECONST OFF}
+{$MINENUMSIZE 1}
+{$IMAGEBASE $400000}
+{$DEFINE DEBUG}
+{$ENDIF IMPLICITBUILDING}
+{$IMPLICITBUILD ON}
+
+requires
+  rtl,
+  xmlrtl,
+  fmx,
+  designide,
+  Prototipagem;
+
+contains
+  uGerarXMI in 'uGerarXMI.pas',
+  uMetodo in 'uMetodo.pas',
+  uAtributo in 'uAtributo.pas',
+  uClasse in 'uClasse.pas',
+  uRelacionamento in 'uRelacionamento.pas',
+  uAtorXMI in 'uAtorXMI.pas',
+  uCasoDeUso in 'uCasoDeUso.pas',
+  uIXmi in 'Interface\uIXmi.pas',
+  uPluginXMI in 'uPluginXMI.pas',
+  uTiposDeDados in 'uTiposDeDados.pas',
+  uPluginTela in 'uPluginTela.pas' {PluginTela},
+  uEstereotipoXMI in 'uEstereotipoXMI.pas';
+
+end.
