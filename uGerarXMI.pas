@@ -149,6 +149,12 @@ begin
   vIdentificador := 1;
 
   vArquivo := TStringList.Create;
+      ListaObj := TObjectList.Create;
+      ListaObjDados := TDictionary<String,TTiposDeDados>.Create;
+      ListaObjAtor := TDictionary<String,TAtorXMI>.Create;
+      ListaObjCaso := TDictionary<String,TCasoDeUso>.Create;
+      ListaObjRelacionamento := TDictionary<String,TRelacionamento>.Create;
+      ListaObjEstereotipo := TDictionary<String,TEstereotipoXMI>.Create;
 
   vlstFiles := fncFillDir(pDiretorio + '*.fmx');
   for vIntI := 0 to vlstFiles.Count - 1 do
@@ -161,12 +167,7 @@ begin
 
       vIndice := 0;
 
-      ListaObj := TObjectList.Create;
-      ListaObjDados := TDictionary<String,TTiposDeDados>.Create;
-      ListaObjAtor := TDictionary<String,TAtorXMI>.Create;
-      ListaObjCaso := TDictionary<String,TCasoDeUso>.Create;
-      ListaObjRelacionamento := TDictionary<String,TRelacionamento>.Create;
-      ListaObjEstereotipo := TDictionary<String,TEstereotipoXMI>.Create;
+
 
       ClassePrincipal := nil;
 
