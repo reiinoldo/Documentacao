@@ -22,6 +22,7 @@ type
     property TipoRetorno: String read getTipoRetorno write ftipoRetorno;
     property Visibilidade: String read getVisibilidade write fVisibilidade;
     property ListaDeParametros: String read fListaDeParametros write fListaDeParametros;
+    function getTiposDeParametros: TStringList;
     function gerarTag(pXML: TXMLDocument): IXMLNode;
   end;
 
@@ -185,6 +186,28 @@ end;
 function TMetodo.getTipoRetorno: String;
 begin
   Result := tipoComponenteParaXMI(ftipoRetorno);
+end;
+
+function TMetodo.getTiposDeParametros: TStringList;
+var
+ i: Integer;
+ listaAux: TStringList;
+begin
+  result := TStringList.Create;
+  listaAux := TStringList.Create;
+  try
+
+    listaAux.Clear;
+    ExtractStrings(['|'],[], PChar(StringReplace(ListaDeParametros, '''', '', [rfReplaceAll])), listaAux);
+
+    for I := 0 to (listaAux.Count div 2) - 1 do
+    begin
+      result.Add(tipoComponenteParaXMI(listaAux.Strings[(i*2)+1]));
+    end;
+
+  finally
+    FreeAndNil(listaAux);
+  end;
 end;
 
 function TMetodo.getVisibilidade: String;

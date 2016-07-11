@@ -99,7 +99,7 @@ end;
 
 function ehMetodo(const pLinha: String): Boolean;
 begin
-  Result := POS('TBotao', pLinha) > 0;
+  Result := ((POS('TBotao', pLinha) > 0) and (not (POS('TBotaoSelecao', pLinha) > 0)));
 end;
 
 function fncFillDir(const AMask: string): TStringList;
@@ -142,8 +142,9 @@ var
   TiposDeDados : TTiposDeDados;
   Estereotipo : TEstereotipoXMI;
   PairEstereotipo: TPair<String, TEstereotipoXMI>;
-  vIndiceEnd, vIntI : Integer;
+  vIndiceEnd, vIntI, I: Integer;
   vlstFiles: TStringList;
+
 begin
 
   vIdentificador := 1;
@@ -301,9 +302,22 @@ begin
             if Pos('Documentacao.Visibilidade', vArquivo.Strings[vIndice]) > 0 then
               Metodo.visibilidade := getValor(vArquivo.Strings[vIndice])
             else if Pos('Documentacao.Retorno', vArquivo.Strings[vIndice]) > 0 then
-              Metodo.tipoRetorno := getValor(vArquivo.Strings[vIndice])
+            begin
+              Metodo.tipoRetorno := getValor(vArquivo.Strings[vIndice]);
+              TiposDeDados := TTiposDeDados.Create;
+              TiposDeDados.Nome := Metodo.tipoRetorno;
+              ListaObjDados.AddOrSetValue(Metodo.tipoRetorno, TiposDeDados);
+            end
             else if Pos('Documentacao.Parametros.ListaDeParametros', vArquivo.Strings[vIndice]) > 0 then
-              Metodo.listaDeParametros := getValor(vArquivo.Strings[vIndice])
+            begin
+              Metodo.listaDeParametros := getValor(vArquivo.Strings[vIndice]);
+              for I := 0 to (Metodo.getTiposDeParametros.Count) - 1 do
+              begin
+                TiposDeDados := TTiposDeDados.Create;
+                TiposDeDados.Nome := Metodo.getTiposDeParametros.Strings[i];
+                ListaObjDados.AddOrSetValue(Metodo.getTiposDeParametros.Strings[i], TiposDeDados);
+              end;
+            end
             else if (Pos('DocumentacaoAtor', vArquivo.Strings[vIndice]) > 0) and (getValor(vArquivo.Strings[vIndice]) <> '<>') then
             begin
 
@@ -464,14 +478,7 @@ begin
   for I := 0 to ListaObj.Count - 1 do
   begin
     Obj := ListaObj.Items[i];
-
-    if Obj.ClassNameIs('TClasse') then
-    begin
-
-      nameespace.ChildNodes.Add(TClasse(Obj).gerarTag(XMLDocument));
-
-    end;
-
+    nameespace.ChildNodes.Add(TClasse(Obj).gerarTag(XMLDocument));
   end;
 
   for Obj in ListaObjAtor.Values do

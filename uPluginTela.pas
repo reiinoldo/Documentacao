@@ -24,7 +24,6 @@ type
     Rotulo2: TRotulo;
     gerar: TBotao;
     ProgressBar1: TProgressBar;
-    IncluirSubpastas: TCaixaSelecao;
     Rotulo3: TRotulo;
     OpenDialog1: TOpenDialog;
     SaveDialog1: TSaveDialog;

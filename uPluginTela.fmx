@@ -11843,6 +11843,8 @@
     Text = 'Gerar'
     OnClick = gerarClick
     Documentacao.Visibilidade = Público
+    Documentacao.Retorno = 'Logico'
+    Documentacao.Parametros.ListaDeParametros = 'Diretorio|Texto|LocalSalvar|Texto'
     DocumentacaoAtor = <>
   end
   object ProgressBar1: TProgressBar
@@ -11853,18 +11855,6 @@
     Size.Height = 32.000000000000000000
     Size.PlatformDefault = False
     Visible = False
-  end
-  object IncluirSubpastas: TCaixaSelecao
-    Position.X = 64.000000000000000000
-    Position.Y = 240.000000000000000000
-    Size.Width = 161.000000000000000000
-    Size.Height = 19.000000000000000000
-    Size.PlatformDefault = False
-    TabOrder = 7
-    Text = 'Incluir subpastas'
-    Visible = False
-    Documentacao.Visibilidade = Privado
-    Documentacao.Atributo = True
   end
   object Rotulo3: TRotulo
     StyledSettings = [Family, Style, FontColor]
